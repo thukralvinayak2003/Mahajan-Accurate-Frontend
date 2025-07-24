@@ -1,4 +1,7 @@
-import { FormData, StockStatus } from "@/types"; // Assuming you have a type for stock status
+import ProductModal from "@/components/Modal";
+import { createProduct } from "@/features/product/productSlice";
+import type { AppDispatch } from "@/store"; // ✅ Import typesp
+import { ProductFormData, StockStatus } from "@/types"; // Renamed to avoid conflict
 import { uploadToCloudinary } from "@/utils/cloudnary";
 import { Product } from "@/zod";
 import * as ImagePicker from "expo-image-picker";
@@ -8,14 +11,13 @@ import {
   FlatList,
   Image,
   ListRenderItem,
-  Modal,
   SafeAreaView,
   ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useDispatch } from "react-redux";
 
 // Dummy data generator matching your Prisma schema
 const generateDummyProducts = (): Product[] => [
@@ -88,15 +90,18 @@ const generateDummyProducts = (): Product[] => [
 export default function ProductTab() {
   const [products, setProducts] = useState<Product[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [formData, setFormData] = useState<FormData>({
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [formData, setFormData] = useState<ProductFormData>({
     name: "",
     description: "",
     price: "",
     stock: "",
     imageUrl: "",
     size: "",
+    updatedAt: new Date().toISOString(),
   });
+
+  const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
     // Initialize with dummy data
@@ -111,6 +116,7 @@ export default function ProductTab() {
       stock: "",
       imageUrl: "",
       size: "",
+      updatedAt: new Date().toISOString(),
     });
     setEditingProduct(null);
   };
@@ -169,12 +175,13 @@ export default function ProductTab() {
       stock: product.stock.toString(),
       imageUrl: product.imageUrl || "",
       size: product.size || "",
+      updatedAt: new Date().toISOString(),
     });
     setEditingProduct(product);
     setModalVisible(true);
   };
 
-  const handleSave = (): void => {
+  const handleSave = async () => {
     // Basic validation
     if (!formData.name.trim() || !formData.price.trim()) {
       Alert.alert(
@@ -198,11 +205,11 @@ export default function ProductTab() {
       return;
     }
 
-    const productData = {
+    const productData: ProductFormData = {
       name: formData.name.trim(),
       description: formData.description.trim(),
-      price: price,
-      stock: stock,
+      price: price + "",
+      stock: stock + "",
       imageUrl: formData.imageUrl.trim(),
       size: formData.size.trim(),
       updatedAt: today.toISOString(),
@@ -219,13 +226,8 @@ export default function ProductTab() {
     } else {
       // Create new product (simulate cuid generation)
 
-      const newProduct: Product = {
-        id: `cuid_prod_${Date.now()}`,
-        ...productData,
-        createdAt: today.toISOString(), // ✅ convert to string
-        updatedAt: today.toISOString(), // ✅ ensure updatedAt is also string
-      };
-      setProducts([newProduct, ...products]);
+      const result = await dispatch(createProduct(productData));
+      console.log(result);
       Alert.alert("Success", "Product created successfully!");
     }
 
@@ -249,14 +251,6 @@ export default function ProductTab() {
         },
       ]
     );
-  };
-
-  const formatDate = (date: Date): string => {
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
   };
 
   const getStockStatus = (stock: number): StockStatus => {
@@ -404,135 +398,16 @@ export default function ProductTab() {
       />
 
       {/* Product Form Modal - Modernized */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(false);
-          resetForm();
-        }}
-      >
-        <View className="flex-1 bg-black/30 justify-center items-center p-5">
-          <View className="bg-white rounded-xl p-5 w-full max-w-md">
-            <Text className="text-lg font-semibold text-gray-900 mb-4">
-              {editingProduct ? "Edit Product" : "New Product"}
-            </Text>
-
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              className="space-y-4"
-            >
-              <View>
-                <Text className="text-sm text-gray-500 mb-1">Name *</Text>
-                <TextInput
-                  className="border-b border-gray-200 pb-2 text-base"
-                  value={formData.name}
-                  onChangeText={(text) =>
-                    setFormData({ ...formData, name: text })
-                  }
-                  placeholder="Product name"
-                />
-              </View>
-
-              <View>
-                <Text className="text-sm text-gray-500 mb-1">Description</Text>
-                <TextInput
-                  className="border-b border-gray-200 pb-2 text-base h-16"
-                  value={formData.description}
-                  onChangeText={(text) =>
-                    setFormData({ ...formData, description: text })
-                  }
-                  placeholder="Product description"
-                  multiline
-                />
-              </View>
-
-              <View className="flex-row space-x-4">
-                <View className="flex-1">
-                  <Text className="text-sm text-gray-500 mb-1">Price *</Text>
-                  <TextInput
-                    className="border-b border-gray-200 pb-2 text-base"
-                    value={formData.price}
-                    onChangeText={(text) =>
-                      setFormData({ ...formData, price: text })
-                    }
-                    placeholder="0.00"
-                    keyboardType="decimal-pad"
-                  />
-                </View>
-
-                <View className="flex-1">
-                  <Text className="text-sm text-gray-500 mb-1">Stock</Text>
-                  <TextInput
-                    className="border-b border-gray-200 pb-2 text-base"
-                    value={formData.stock}
-                    onChangeText={(text) =>
-                      setFormData({ ...formData, stock: text })
-                    }
-                    placeholder="0"
-                    keyboardType="number-pad"
-                  />
-                </View>
-              </View>
-
-              <View>
-                <Text className="text-sm text-gray-500 mb-2">
-                  Product Image
-                </Text>
-
-                <TouchableOpacity
-                  className="bg-gray-100 rounded-md h-32 items-center justify-center"
-                  onPress={selectImage}
-                >
-                  {formData.imageUrl ? (
-                    <Image
-                      source={{ uri: formData.imageUrl }}
-                      className="w-full h-full rounded-md"
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <Text className="text-gray-500">Tap to select image</Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-
-              <View>
-                <Text className="text-sm text-gray-500 mb-1">Size</Text>
-                <TextInput
-                  className="border-b border-gray-200 pb-2 text-base"
-                  value={formData.size}
-                  onChangeText={(text) =>
-                    setFormData({ ...formData, size: text })
-                  }
-                  placeholder="One Size"
-                />
-              </View>
-            </ScrollView>
-
-            <View className="flex-row justify-end space-x-3 mt-6">
-              <TouchableOpacity
-                className="px-4 py-2"
-                onPress={() => {
-                  setModalVisible(false);
-                  resetForm();
-                }}
-              >
-                <Text className="text-gray-500">Cancel</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className="px-4 py-2 bg-gray-900 rounded-md"
-                onPress={handleSave}
-              >
-                <Text className="text-white">
-                  {editingProduct ? "Update" : "Create"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <ProductModal
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+        formData={formData}
+        editingProduct={editingProduct}
+        setFormData={setFormData}
+        selectImage={selectImage}
+        resetForm={resetForm}
+        handleSave={handleSave}
+      />
     </SafeAreaView>
   );
 }

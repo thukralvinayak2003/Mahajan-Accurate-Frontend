@@ -1,5 +1,6 @@
 import Card from "@/components/Card";
 import SearchBar from "@/components/SearchBar";
+import { Product } from "@/zod";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -115,7 +116,7 @@ const dummyData = [
 
 const Search = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState<FormData[]>([]); // here is problem for the error ---- 
   const [loading, setLoading] = useState(false);
 
   const handleSearch = (text: string) => {
@@ -164,8 +165,8 @@ const Search = () => {
       <FlatList
         className="px-2"
         data={filteredProducts}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => <Card {...item} />}
+        keyExtractor={(item : Product) => item.id.toString()}
+        renderItem={({ item }) => <Card item={item} />}
         numColumns={3}
         columnWrapperStyle={{
           justifyContent: "flex-start",

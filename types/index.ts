@@ -1,4 +1,20 @@
-import { CardProps, FormData, ImageType, StockStatus } from "./componentTypes";
+import {
+  CardProps,
+  ImageType,
+  ProductFormData,
+  ProductModalProps,
+  ProductState,
+  StockStatus,
+} from "./componentTypes";
 import { AuthState, User } from "./userTypes";
 
-export { AuthState, CardProps, FormData, ImageType, StockStatus, User };
+export {
+  AuthState,
+  CardProps,
+  ImageType,
+  ProductFormData,
+  ProductModalProps,
+  ProductState,
+  StockStatus,
+  User,
+};

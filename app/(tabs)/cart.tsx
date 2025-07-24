@@ -53,7 +53,7 @@ const Cart = () => {
           "Durable 11-speed chain compatible with Shimano and SRAM systems.",
         imageUrl:
           "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png",
-        size: undefined,
+        size: "",
       },
     },
     {
