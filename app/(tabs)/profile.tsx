@@ -18,6 +18,8 @@ import {
 
 const Profile = () => {
   // User profile data based on your Prisma schema
+    const [showAllOrders, setShowAllOrders] = useState(false);
+
   const [userProfile, setUserProfile] = useState({
     id: "user1",
     phoneNumber: "+1234567890", // Not changeable
@@ -111,8 +113,14 @@ const Profile = () => {
           price: 89.99,
           product: {
             name: "Disc Brake Set",
-            imageUrl:
-              "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png",
+            imageUrl: "https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png",
+            id: "",
+            createdAt: "",
+            updatedAt: "",
+            price: 0,
+            description: "",
+            stock: 0,
+            size: ""
           },
         },
       ],
@@ -179,56 +187,61 @@ const Profile = () => {
     }
   };
 
-  const renderOrderItem = ({ item: order  }  : {item : types.Order}) => (
-    <View className="bg-white rounded-xl p-4 mx-4 mb-4 shadow-sm">
-      <View className="flex-row justify-between items-start mb-3">
-        <View className="flex-1">
-          <Text className="text-sm text-gray-500">
-            Order #{order.id.slice(-6)}
-          </Text>
-          <Text className="text-xs text-gray-400 mt-1">
-            {formatDate(order.createdAt)}
-          </Text>
-        </View>
-        <View
-          className={`px-3 py-1 rounded-full ${getStatusBgColor(order.status)}`}
+ const renderOrderItem = ({ item: order }: { item: types.Order }) => (
+  <View className="bg-[#303030] rounded-xl p-4 mx-4 mb-4 border border-[#facc15]">
+    {/* Header */}
+    <View className="flex-row justify-between items-start mb-3">
+      <View className="flex-1">
+        <Text className="text-sm text-white">Order #{order.id.slice(-6)}</Text>
+        <Text className="text-xs text-gray-400 mt-1">
+          {formatDate(order.createdAt)}
+        </Text>
+      </View>
+      <View
+        className={`px-3 py-1 rounded-full ${getStatusBgColor(order.status)}`}
+      >
+        <Text
+          className={`text-xs font-semibold ${getStatusColor(order.status)}`}
         >
-          <Text
-            className={`text-xs font-semibold ${getStatusColor(order.status)}`}
-          >
-            {order.status}
-          </Text>
-        </View>
-      </View>
-
-      <View className="border-l-2 border-gray-200 pl-4 mb-3">
-        {order.orderItems.map((item : types.OrderItem, index : number) => (
-          <View key={item.id} className="flex-row items-center mb-2">
-            <Image
-              source={{ uri: item?.product?.imageUrl }}
-              style={styles.orderItemImage}
-              resizeMode="contain"
-            />
-            <View className="flex-1 ml-3">
-              <Text className="text-sm font-medium" numberOfLines={1}>
-                {item?.product?.name}
-              </Text>
-              <Text className="text-xs text-gray-500">
-                Qty: {item.quantity} × ${item.price.toFixed(2)}
-              </Text>
-            </View>
-          </View>
-        ))}
-      </View>
-
-      <View className="flex-row justify-between items-center pt-3 border-t border-gray-100">
-        <Text className="text-sm text-gray-600">Total</Text>
-        <Text className="text-lg font-bold text-green-600">
-          ${order.totalPrice.toFixed(2)}
+          {order.status}
         </Text>
       </View>
     </View>
-  );
+
+    {/* Order Items */}
+    <View className="border-l-2 border-gray-600 pl-4 mb-3">
+      {order.orderItems.map((item: types.OrderItem, index: number) => (
+        <View key={item.id} className="flex-row items-center mb-2">
+          <Image
+            source={{ uri: item?.product?.imageUrl }}
+            style={styles.orderItemImage}
+            resizeMode="contain"
+          />
+          <View className="flex-1 ml-3">
+            <Text
+              className="text-sm font-medium text-white"
+              numberOfLines={1}
+            >
+              {item?.product?.name}
+            </Text>
+            <Text className="text-xs text-gray-400">
+              Qty: {item.quantity} × ${item.price.toFixed(2)}
+            </Text>
+          </View>
+        </View>
+      ))}
+    </View>
+
+    {/* Total */}
+    <View className="flex-row justify-between items-center pt-3 border-t border-gray-700">
+      <Text className="text-sm text-gray-300">Total</Text>
+      <Text className="text-lg font-bold text-green-400">
+        ${order.totalPrice.toFixed(2)}
+      </Text>
+    </View>
+  </View>
+);
+
 
   return (
     <ImageBackground
@@ -250,150 +263,160 @@ const Profile = () => {
         </View>
 
         {/* Profile Information */}
-        <View className="bg-white rounded-xl mx-4 mb-6 p-6 shadow-sm">
-          <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-lg font-semibold text-gray-800">
-              Personal Information
-            </Text>
-            {!isEditing ? (
-              <TouchableOpacity
-                onPress={() => setIsEditing(true)}
-                className="flex-row items-center"
-              >
-                <Ionicons name="pencil" size={16} color="#3B82F6" />
-                <Text className="text-blue-500 ml-1">Edit</Text>
-              </TouchableOpacity>
-            ) : (
-              <View className="flex-row">
-                <TouchableOpacity onPress={handleCancelEdit} className="mr-4">
-                  <Text className="text-gray-500">Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleSaveProfile}>
-                  <Text className="text-blue-500 font-semibold">Save</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
+        <View className="relative rounded-2xl mx-4 mb-6 overflow-hidden">
+  {/* Background layer with opacity */}
+  <View className="absolute inset-0 bg-[#303030] opacity-70" />
 
-          {/* Phone Number (Not editable) */}
-          <View className="mb-4">
-            <Text className="text-sm text-gray-500 mb-1">Phone Number</Text>
-            <View className="flex-row items-center">
-              <Text className="text-base text-gray-800">
-                {userProfile.phoneNumber}
-              </Text>
-              <View className="bg-gray-100 px-2 py-1 rounded ml-2">
-                <Text className="text-xs text-gray-500">Not editable</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* First Name */}
-          <View className="mb-4">
-            <Text className="text-sm text-gray-500 mb-1">First Name</Text>
-            {isEditing ? (
-              <TextInput
-                value={editedProfile.firstName}
-                onChangeText={(text) =>
-                  setEditedProfile((prev) => ({ ...prev, firstName: text }))
-                }
-                className="border border-gray-300 rounded-lg px-3 py-2 text-base"
-                placeholder="Enter first name"
-              />
-            ) : (
-              <Text className="text-base text-gray-800">
-                {userProfile.firstName}
-              </Text>
-            )}
-          </View>
-
-          {/* Last Name */}
-          <View className="mb-4">
-            <Text className="text-sm text-gray-500 mb-1">Last Name</Text>
-            {isEditing ? (
-              <TextInput
-                value={editedProfile.lastName}
-                onChangeText={(text) =>
-                  setEditedProfile((prev) => ({ ...prev, lastName: text }))
-                }
-                className="border border-gray-300 rounded-lg px-3 py-2 text-base"
-                placeholder="Enter last name"
-              />
-            ) : (
-              <Text className="text-base text-gray-800">
-                {userProfile.lastName}
-              </Text>
-            )}
-          </View>
-
-          {/* Role (Not editable) */}
-          <View className="mb-4">
-            <Text className="text-sm text-gray-500 mb-1">Role</Text>
-            <View className="flex-row items-center">
-              <Text className="text-base text-gray-800">
-                {userProfile.role}
-              </Text>
-              <View className="bg-gray-100 px-2 py-1 rounded ml-2">
-                <Text className="text-xs text-gray-500">Not editable</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Last Login */}
-          <View>
-            <Text className="text-sm text-gray-500 mb-1">Last Login</Text>
-            <Text className="text-base text-gray-800">
-              {formatDate(userProfile.lastLogin)}
-            </Text>
-          </View>
+  {/* Foreground content */}
+  <View className="relative rounded-2xl p-6 border border-[#facc15]">
+    <View className="flex-row justify-between items-center mb-5">
+      <Text className="text-xl font-bold text-white">Personal Information</Text>
+      {!isEditing ? (
+        <TouchableOpacity
+          onPress={() => setIsEditing(true)}
+          className="flex-row items-center"
+        >
+          <Ionicons name="pencil" size={16} color="#facc15" />
+          <Text className="text-[#facc15] ml-1 font-medium">Edit</Text>
+        </TouchableOpacity>
+      ) : (
+        <View className="flex-row">
+          <TouchableOpacity onPress={handleCancelEdit} className="mr-4">
+            <Text className="text-gray-400 font-medium">Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleSaveProfile}>
+            <Text className="text-[#facc15] font-semibold">Save</Text>
+          </TouchableOpacity>
         </View>
+      )}
+    </View>
+
+    {/* Phone Number (Not editable) */}
+    <View className="mb-4">
+      <Text className="text-sm text-gray-400 mb-1">Phone Number</Text>
+      <View className="flex-row items-center">
+        <Text className="text-base text-white">{userProfile.phoneNumber}</Text>
+        <View className="bg-gray-700 px-2 py-0.5 rounded ml-2">
+          <Text className="text-xs text-gray-300">Not editable</Text>
+        </View>
+      </View>
+    </View>
+
+    {/* First Name */}
+    <View className="mb-4">
+      <Text className="text-sm text-gray-400 mb-1">First Name</Text>
+      {isEditing ? (
+        <TextInput
+          value={editedProfile.firstName}
+          onChangeText={(text) =>
+            setEditedProfile((prev) => ({ ...prev, firstName: text }))
+          }
+          className="border border-gray-600 rounded-lg px-3 py-2 text-base text-white"
+          placeholder="Enter first name"
+          placeholderTextColor="#9CA3AF"
+        />
+      ) : (
+        <Text className="text-base text-white">{userProfile.firstName}</Text>
+      )}
+    </View>
+
+    {/* Last Name */}
+    <View className="mb-4">
+      <Text className="text-sm text-gray-400 mb-1">Last Name</Text>
+      {isEditing ? (
+        <TextInput
+          value={editedProfile.lastName}
+          onChangeText={(text) =>
+            setEditedProfile((prev) => ({ ...prev, lastName: text }))
+          }
+          className="border border-gray-600 rounded-lg px-3 py-2 text-base  text-white"
+          placeholder="Enter last name"
+          placeholderTextColor="#9CA3AF"
+        />
+      ) : (
+        <Text className="text-base text-white">{userProfile.lastName}</Text>
+      )}
+    </View>
+
+    {/* Role (Not editable) */}
+    <View className="mb-4">
+      <Text className="text-sm text-gray-400 mb-1">Role</Text>
+      <View className="flex-row items-center">
+        <Text className="text-base text-white">{userProfile.role}</Text>
+        <View className="bg-gray-700 px-2 py-0.5 rounded ml-2">
+          <Text className="text-xs text-gray-300">Not editable</Text>
+        </View>
+      </View>
+    </View>
+
+    {/* Last Login */}
+    <View>
+      <Text className="text-sm text-gray-400 mb-1">Last Login</Text>
+      <Text className="text-base text-white">
+        {formatDate(userProfile.lastLogin)}
+      </Text>
+    </View>
+  </View>
+</View>
+
+
 
         {/* Order History */}
         <View className="mx-4 mb-6">
-          <Text className="text-lg font-semibold text-gray-800 mb-4">
-            Order History
-          </Text>
-          {previousOrders.length === 0 ? (
-            <View className="bg-white rounded-xl p-8 items-center shadow-sm">
-              <Ionicons name="receipt-outline" size={48} color="#9CA3AF" />
-              <Text className="text-gray-500 mt-2">No previous orders</Text>
-            </View>
-          ) : (
-            <FlatList
-              data={previousOrders}
-              keyExtractor={(item) => item.id}
-              renderItem={renderOrderItem}
-              scrollEnabled={false}
-              showsVerticalScrollIndicator={false}
-            />
-          )}
-        </View>
+  <View className="flex-row justify-between items-center mb-4">
+    <Text className="text-lg font-semibold text-white">Order History</Text>
+    {previousOrders.length > 2 && !showAllOrders && (
+      <TouchableOpacity onPress={() => setShowAllOrders(true)}>
+        <Text className="text-[#facc15] font-medium">View More</Text>
+      </TouchableOpacity>
+    )}
+  </View>
+
+  {previousOrders.length === 0 ? (
+    <View className="bg-[#303030] rounded-xl p-8 items-center border border-[#facc15]">
+      <Ionicons name="receipt-outline" size={48} color="#9CA3AF" />
+      <Text className="text-gray-400 mt-2">No previous orders</Text>
+    </View>
+  ) : (
+    <FlatList
+      data={showAllOrders ? previousOrders : previousOrders.slice(0, 2)}
+      keyExtractor={(item) => item.id}
+      renderItem={renderOrderItem}
+      scrollEnabled={false}
+      showsVerticalScrollIndicator={false}
+    />
+  )}
+</View>
 
         {/* Account Statistics */}
-        <View className="bg-white rounded-xl mx-4 mb-6 p-6 shadow-sm">
-          <Text className="text-lg font-semibold text-gray-800 mb-4">
+        <View className="bg-[#303030] rounded-xl mx-4 mb-6 p-6 border border-[#facc15]">
+          <Text className="text-lg font-semibold text-white mb-4">
             Account Statistics
           </Text>
+
           <View className="flex-row justify-between items-center mb-3">
-            <Text className="text-gray-600">Total Orders</Text>
-            <Text className="font-semibold">{previousOrders.length}</Text>
+            <Text className="text-gray-400">Total Orders</Text>
+            <Text className="font-semibold text-white">{previousOrders.length}</Text>
           </View>
+
           <View className="flex-row justify-between items-center mb-3">
-            <Text className="text-gray-600">Total Spent</Text>
-            <Text className="font-semibold text-green-600">
+            <Text className="text-gray-400">Total Spent</Text>
+            <Text className="font-semibold text-green-400">
               $
               {previousOrders
                 .reduce((sum, order) => sum + order.totalPrice, 0)
                 .toFixed(2)}
             </Text>
           </View>
+
           <View className="flex-row justify-between items-center">
-            <Text className="text-gray-600">Member Since</Text>
-            <Text className="font-semibold">
+            <Text className="text-gray-400">Member Since</Text>
+            <Text className="font-semibold text-white">
               {formatDate(userProfile.createdAt)}
             </Text>
           </View>
         </View>
+
       </ScrollView>
     </ImageBackground>
   );
